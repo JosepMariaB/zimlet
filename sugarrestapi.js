@@ -93,8 +93,7 @@ ironsugar.prototype._doPOST = function (url, params, callback) {
  */
 ironsugar.prototype._callREST = function (method,data,callback) {
 	var extraArgs = [];
-
-	if (arguments.length>3) { // La llamada es con 4 argumentos a tope! desde 
+	if (arguments.length>3) { 
 		for (var i=3;i<arguments.length;i++) {
 			extraArgs.push(arguments[i]);
 		}
@@ -242,11 +241,13 @@ ironsugar.prototype.getContactsFromMail = function(email, callback){
  ***/
 ironsugar.prototype.getLeadsFromMail = function(email, callback){
         // Fetch Leads IDs for given email
+
         var q = "leads.id in (select eabr.bean_id from email_addresses ea left join email_addr_bean_rel eabr on eabr.email_address_id=ea.id where ea.email_address like '%"+email+"%')";
         this._callREST("get_entry_list",'["'+this.sessid+'","Leads","'+q+'","",0,["id","first_name","last_name"],"[]",100,"false"]',this.postOp, callback);
 
         return true;
 }
+
 
 /**
  * getModuleInfo
@@ -513,6 +514,70 @@ ironsugar.prototype.createLead = function(firstname, lastname, email, acc, desc,
 	d += 	']';
 			
 	this._callREST("set_entry",'["'+this.sessid+'","Leads",'+d+']', this.postOp, callback);
+}
+ironsugar.prototype.createOpportunity = function(name, account, amount, date, stage, assigned, callback) {
+
+	// Escape special characters for JSON.
+	// @todo this could be improved A LOT using a JSON encoder instead a JSON format string
+		
+	
+	var d = '[';
+	d +=	'{"name":"name", "value":"'+ this.EscapeJSON(name) +'"},'+
+		'{"name":"assigned_contact_id", "value":"'+ this.EscapeJSON(account) +'"},'+
+		'{"name":"assigned_contact_name", "value":"'+ this.EscapeJSON(amount) +'"},'+
+		'{"name":"assigned_contact", "value":"'+ this.EscapeJSON(assigned)+'"},'+
+		'{"name":"sales_stage", "value":"'+this.EscapeJSON(stage)+'"}';
+	// Add Assigned ID if requested
+	if (assigned) {
+		d += ',{"name":"assigned_user_id", "value":"'+ this.uid + '"}';
+	}
+
+	d += 	']';
+			
+	this._callREST("set_entry",'["'+this.sessid+'","Opportunities",'+d+']', this.postOp, callback);
+}
+ironsugar.prototype.createCase = function(name, account, subject, desc, resolution, assigned, callback) {
+
+	// Escape special characters for JSON.
+	// @todo this could be improved A LOT using a JSON encoder instead a JSON format string
+
+	var d = '[';
+	d +=	'{"name":"name", "value":"'+ this.EscapeJSON(name) +'"},'+
+		'{"name":"account", "value":"'+ this.EscapeJSON(account) +'"},'+
+		'{"name":"subject", "value":"'+ this.EscapeJSON(subject) +'"},'+
+		'{"name":"assigned", "value":"'+ this.EscapeJSON(assigned)+'"},'+
+		'{"name":"resolution", "stage":"'+this.EscapeJSON(resolution)+'"}';
+
+	// Add Assigned ID if requested
+	if (assigned) {
+		d += ',{"name":"assigned_user_id", "value":"'+ this.uid + '"}';
+	}
+
+	d += 	']';
+			
+	this._callREST("set_entry",'["'+this.sessid+'","Cases",'+d+']', this.postOp, callback);
+}
+
+ironsugar.prototype.createContact = function(firstname, lastname, email, acc, desc, assigned, callback) {
+
+	// Escape special characters for JSON.
+	// @todo this could be improved A LOT using a JSON encoder instead a JSON format string
+
+	var d = '[';
+	d +=	'{"name":"first_name", "value":"'+ this.EscapeJSON(firstname) +'"},'+
+		'{"name":"last_name", "value":"'+ this.EscapeJSON(lastname) +'"},'+
+		'{"name":"account_name", "value":"'+ this.EscapeJSON(acc) +'"},'+
+		'{"name":"description", "value":"'+ this.EscapeJSON(desc)+'"},'+
+		'{"name":"email1", "value":"'+this.EscapeJSON(email)+'"}';
+
+	// Add Assigned ID if requested
+	if (assigned) {
+		d += ',{"name":"assigned_user_id", "value":"'+ this.uid + '"}';
+	}
+
+	d += 	']';
+			
+	this._callREST("set_entry",'["'+this.sessid+'","Contacts",'+d+']', this.postOp, callback);
 }
 
 //ironsugar.prototype.createLeadEmail = function(email, callback, response) {
